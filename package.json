@@ -1,0 +1,15 @@
+{
+  "name": "mini-jam-93",
+  "version": "1.0.0",
+  "description": "",
+  "main": "game.js",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "kaboom": "^2000.1.2",
+    "parcel": "^2.0.1"
+  }
+}
