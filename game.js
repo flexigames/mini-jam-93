@@ -50,16 +50,14 @@ onDraw(() => {
 
 createLocations();
 
-loop(1, () => {
+loop(3, () => {
   const locations = get("location");
 
   const flights = [];
 
   for (const departingLocation of locations) {
     for (const destination of departingLocation.connections) {
-      if (departingLocation.travelers[destination.number] > 0) {
-        flights.push([departingLocation, destination]);
-      }
+      flights.push([departingLocation, destination]);
     }
   }
 
@@ -124,6 +122,10 @@ function createLocations() {
 }
 
 function createPlane(from, to, passengers = 1) {
+  if (!canSpend(10)) return;
+
+  spend(10);
+
   const plane = add([
     "plane",
     pos(from.pos),
@@ -171,8 +173,8 @@ onMouseRelease((pos) => {
   const location = getLocation(pos);
 
   if (location && start?.pos !== location.pos) {
-    if (money >= 10) {
-      money -= 10;
+    if (canSpend(10)) {
+      spend(10);
       start.addConnection(location);
     }
   }
@@ -187,5 +189,15 @@ function getLocation(pos) {
     if (location.hasPoint(pos)) {
       return location;
     }
+  }
+}
+
+function canSpend(amount) {
+  return money >= amount;
+}
+
+function spend(amount) {
+  if (canSpend(amount)) {
+    money -= amount;
   }
 }
