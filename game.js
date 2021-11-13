@@ -4,42 +4,65 @@ kaboom({
   background: [240, 220, 220],
 });
 
+let start = null;
+let end = null;
+let connections = [];
+
 createLocations();
 
 function createLocations() {
-  const locationCount = 2;
+  const locationCount = 5;
   for (let i = 1; i < locationCount + 1; i++) {
-    add([
+    const position = new vec2(
+      (i * width()) / (locationCount + 1),
+      rand(height())
+    );
+
+    const location = add([
       'location',
-      pos((i * width()) / (locationCount + 1), height() / 2),
+      pos(position),
       rect(32, 32),
       origin('center'),
       area(),
       color(30, 20, 20),
+      {
+        travellers: parseInt(rand(2)),
+        connections: [],
+        addConnection(location) {
+          this.connections = [...this.connections, location];
+        },
+      },
     ]);
+
+    const travellerText = add([
+      pos(position.x, position.y - 32),
+      origin('center'),
+      text('test', {
+        size: 24,
+        font: 'sink',
+        color: 'black',
+      }),
+      color(30, 20, 20),
+    ]);
+
+    travellerText.onUpdate(() => {
+      travellerText.text = location.travellers;
+    });
   }
 }
 
-let start = null;
-let end = null;
-let connections = []
-
 onMouseDown((pos) => {
-  const location = getLocation(pos)
+  const location = getLocation(pos);
   if (!start && location) {
-    start = location
+    start = location;
   }
 });
 onMouseMove((pos) => (end = pos));
 onMouseRelease((pos) => {
-  const location = getLocation(pos)
+  const location = getLocation(pos);
 
-  if (location && start !== location.pos) {
-    console.log('adding conncetion')
-    connections.push({
-      start,
-      end: location
-    })
+  if (location && start.pos !== location.pos) {
+    start.addConnection(location);
   }
 
   start = null;
@@ -56,21 +79,25 @@ onDraw(() => {
     });
   }
 
-  for(const connection of connections) {
-    drawLine({
-      p1: connection.start.pos,
-      p2: connection.end.pos,
-      width: 8,
-      color: rgb(255, 0, 0),
-    })
+  const locations = get('location');
+
+  for (const location of locations) {
+    for (const connection of location.connections) {
+      drawLine({
+        p1: location.pos,
+        p2: connection.pos,
+        width: 8,
+        color: rgb(0, 255, 0),
+      });
+    }
   }
 });
 
-function getLocation(pos){
+function getLocation(pos) {
   const locations = get('location');
   for (const location of locations) {
     if (location.hasPoint(pos)) {
-      return location
+      return location;
     }
   }
 }
