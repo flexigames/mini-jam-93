@@ -6,6 +6,7 @@ kaboom({
 
 let start = null;
 let end = null;
+let money = 100;
 
 const locationCount = 4;
 const locationColors = [
@@ -112,6 +113,7 @@ function createPlane(from, to, passengers = 1) {
       const randomDestination =
         possibleDestinations[parseInt(rand(possibleDestinations.length))];
       location.travelers[randomDestination] += plane.passengers;
+      money += plane.passengers * 5;
       destroy(plane);
     }
   });
@@ -130,7 +132,10 @@ onMouseRelease((pos) => {
   const location = getLocation(pos);
 
   if (location && start?.pos !== location.pos) {
-    start.addConnection(location);
+    if (money >= 10) {
+      money -= 10;
+      start.addConnection(location);
+    }
   }
 
   start = null;
@@ -159,6 +164,13 @@ onDraw(() => {
       });
     }
   }
+
+  drawText({
+    text: "$" + money,
+    size: 24,
+    font: "sink",
+    color: rgb(255, 255, 255),
+  });
 });
 
 function getLocation(pos) {
