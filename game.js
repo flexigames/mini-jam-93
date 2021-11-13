@@ -35,7 +35,7 @@ onDraw(() => {
         p1: location.pos,
         p2: connection.pos,
         width: 8,
-        color: rgb(220, 220, 255),
+        color: rgb(40, 38, 78),
       });
     }
   }
