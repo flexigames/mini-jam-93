@@ -1,53 +1,59 @@
-import kaboom from 'kaboom';
+import kaboom from "kaboom";
 
 kaboom({
-  background: [240, 220, 220],
+  background: [10, 10, 20],
 });
 
 let start = null;
 let end = null;
 
+const locationCount = 4;
+const locationColors = [
+  { r: 242, g: 123, b: 75 },
+  { r: 223, g: 47, b: 91 },
+  { r: 255, g: 237, b: 90 },
+  { r: 0, g: 140, b: 204 },
+];
+
 createLocations();
 
 loop(1, () => {
-  const locations = get('location');
+  const locations = get("location");
 
-  const departingLocations = [];
+  const flights = [];
 
-  for (const location of locations) {
-    if (location.connections.length > 0 && location.travellers > 0) {
-      departingLocations.push(location);
+  for (const departingLocation of locations) {
+    for (const destination of departingLocation.connections) {
+      if (departingLocation.travelers[destination.number] > 0) {
+        flights.push([departingLocation, destination]);
+      }
     }
   }
 
-  for (const departingLocation of departingLocations) {
-    const destination =
-      departingLocation.connections[
-        parseInt(rand(departingLocation.connections.length))
-      ];
-    departingLocation.travellers--;
+  for (const [departingLocation, destination] of flights) {
+    departingLocation.travelers[destination.number]--;
 
-    createPlane(departingLocation.pos, destination.pos, 1);
+    createPlane(departingLocation, destination, 1);
   }
 });
 
 function createLocations() {
-  const locationCount = 5;
-  for (let i = 1; i < locationCount + 1; i++) {
+  for (let i = 0; i < locationCount; i++) {
     const position = new vec2(
-      (i * width()) / (locationCount + 1),
-      rand(height())
+      rand(width() - 200) + 100,
+      rand(height() - 200) + 100
     );
 
     const location = add([
-      'location',
+      "location",
       pos(position),
       rect(32, 32),
-      origin('center'),
+      origin("center"),
       area(),
-      color(30, 20, 20),
+      color(locationColors[i]),
       {
-        travellers: parseInt(rand(2)),
+        number: i,
+        travelers: {},
         connections: [],
         addConnection(location) {
           this.connections = [...this.connections, location];
@@ -55,47 +61,57 @@ function createLocations() {
       },
     ]);
 
-    add([
-      pos(position.x, position.y - 32),
-      origin('center'),
-      text('test', {
-        size: 24,
-        font: 'sink',
-        color: 'black',
-      }),
-      color(30, 20, 20),
-      {
-        update() {
-          this.text = location.travellers;
+    let posY = position.y;
+    for (let j = 0; j < locationCount; j++) {
+      if (j === i) continue;
+
+      location.travelers[j] = parseInt(rand(2));
+      posY += 32;
+      add([
+        pos(position.x, posY),
+        origin("center"),
+        text("0", {
+          size: 24,
+          font: "sink",
+          color: "black",
+        }),
+        color(locationColors[j % locationColors.length]),
+        {
+          update() {
+            this.text = location.travelers[j];
+          },
         },
-      },
-    ]);
+      ]);
+    }
   }
 }
 
 function createPlane(from, to, passengers = 1) {
   const plane = add([
-    'plane',
-    pos(from),
+    "plane",
+    pos(from.pos),
     rect(16, 16),
-    origin('center'),
+    origin("center"),
     area(),
-    color(100, 20, 20),
+    color(locationColors[to.number]),
     {
       update() {
-        this.moveTo(to, 200);
+        this.moveTo(to.pos, 200);
       },
-      destination: to,
+      destination: to.pos,
       passengers,
     },
   ]);
 
-  plane.onCollide('location', (location) => {
+  plane.onCollide("location", (location) => {
     if (
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
     ) {
-      location.travellers += plane.passengers;
+      const possibleDestinations = Object.keys(location.travelers);
+      const randomDestination =
+        possibleDestinations[parseInt(rand(possibleDestinations.length))];
+      location.travelers[randomDestination] += plane.passengers;
       destroy(plane);
     }
   });
@@ -113,7 +129,7 @@ onMouseMove((pos) => (end = pos));
 onMouseRelease((pos) => {
   const location = getLocation(pos);
 
-  if (location && start.pos !== location.pos) {
+  if (location && start?.pos !== location.pos) {
     start.addConnection(location);
   }
 
@@ -127,11 +143,11 @@ onDraw(() => {
       p1: start.pos,
       p2: end,
       width: 4,
-      color: rgb(0, 0, 255),
+      color: rgb(220, 220, 255),
     });
   }
 
-  const locations = get('location');
+  const locations = get("location");
 
   for (const location of locations) {
     for (const connection of location.connections) {
@@ -139,14 +155,14 @@ onDraw(() => {
         p1: location.pos,
         p2: connection.pos,
         width: 8,
-        color: rgb(0, 255, 0),
+        color: rgb(220, 220, 255),
       });
     }
   }
 });
 
 function getLocation(pos) {
-  const locations = get('location');
+  const locations = get("location");
   for (const location of locations) {
     if (location.hasPoint(pos)) {
       return location;
