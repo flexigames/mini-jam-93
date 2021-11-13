@@ -23,7 +23,7 @@ onDraw(() => {
       p1: start.pos,
       p2: end,
       width: 4,
-      color: rgb(220, 220, 255),
+      color: rgb(160, 158, 213),
     });
   }
 
@@ -127,9 +127,12 @@ function createPlane(from, to, passengers = 1) {
   const plane = add([
     "plane",
     pos(from.pos),
-    rect(16, 16),
     origin("center"),
     area(),
+    text(passengers, {
+      size: 24,
+      font: "sink",
+    }),
     color(locationColors[to.number]),
     {
       update() {
