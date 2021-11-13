@@ -12,8 +12,9 @@ function createLocations() {
     add([
       'location',
       pos((i * width()) / (locationCount + 1), height() / 2),
-      circle(32),
+      rect(32, 32),
       origin('center'),
+      area(),
       color(30, 20, 20),
     ]);
   }
@@ -21,12 +22,26 @@ function createLocations() {
 
 let start = null;
 let end = null;
+let connections = []
 
 onMouseDown((pos) => {
-  if (!start) start = pos;
+  const location = getLocation(pos)
+  if (!start && location) {
+    start = location
+  }
 });
 onMouseMove((pos) => (end = pos));
-onMouseRelease(() => {
+onMouseRelease((pos) => {
+  const location = getLocation(pos)
+
+  if (location && start !== location.pos) {
+    console.log('adding conncetion')
+    connections.push({
+      start,
+      end: location
+    })
+  }
+
   start = null;
   end = null;
 });
@@ -34,10 +49,28 @@ onMouseRelease(() => {
 onDraw(() => {
   if (start && end) {
     drawLine({
-      p1: start,
+      p1: start.pos,
       p2: end,
       width: 4,
       color: rgb(0, 0, 255),
     });
   }
+
+  for(const connection of connections) {
+    drawLine({
+      p1: connection.start.pos,
+      p2: connection.end.pos,
+      width: 8,
+      color: rgb(255, 0, 0),
+    })
+  }
 });
+
+function getLocation(pos){
+  const locations = get('location');
+  for (const location of locations) {
+    if (location.hasPoint(pos)) {
+      return location
+    }
+  }
+}
