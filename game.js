@@ -6,9 +6,26 @@ kaboom({
 
 let start = null;
 let end = null;
-let connections = [];
 
 createLocations();
+
+loop(1, () => {
+  const locations = get('location');
+
+  const departingLocations = []
+
+  for (const location of locations) {
+    if (location.connections.length > 0 && location.travellers > 0) {
+      departingLocations.push(location);
+    }
+  }
+
+  for(const departingLocation of departingLocations) {
+    const destination = departingLocation.connections[parseInt(rand(departingLocation.connections.length))];
+    departingLocation.travellers--;
+    destination.travellers++;
+  }
+})
 
 function createLocations() {
   const locationCount = 5;
