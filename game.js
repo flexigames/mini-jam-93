@@ -16,6 +16,37 @@ const locationColors = [
   { r: 0, g: 140, b: 204 },
 ];
 
+onDraw(() => {
+  if (start && end) {
+    drawLine({
+      p1: start.pos,
+      p2: end,
+      width: 4,
+      color: rgb(220, 220, 255),
+    });
+  }
+
+  const locations = get("location");
+
+  for (const location of locations) {
+    for (const connection of location.connections) {
+      drawLine({
+        p1: location.pos,
+        p2: connection.pos,
+        width: 8,
+        color: rgb(220, 220, 255),
+      });
+    }
+  }
+
+  drawText({
+    text: "$" + money,
+    size: 24,
+    font: "sink",
+    color: rgb(255, 255, 255),
+  });
+});
+
 createLocations();
 
 loop(1, () => {
@@ -140,37 +171,6 @@ onMouseRelease((pos) => {
 
   start = null;
   end = null;
-});
-
-onDraw(() => {
-  if (start && end) {
-    drawLine({
-      p1: start.pos,
-      p2: end,
-      width: 4,
-      color: rgb(220, 220, 255),
-    });
-  }
-
-  const locations = get("location");
-
-  for (const location of locations) {
-    for (const connection of location.connections) {
-      drawLine({
-        p1: location.pos,
-        p2: connection.pos,
-        width: 8,
-        color: rgb(220, 220, 255),
-      });
-    }
-  }
-
-  drawText({
-    text: "$" + money,
-    size: 24,
-    font: "sink",
-    color: rgb(255, 255, 255),
-  });
 });
 
 function getLocation(pos) {
