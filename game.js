@@ -12,7 +12,7 @@ createLocations();
 loop(1, () => {
   const locations = get('location');
 
-  const departingLocations = []
+  const departingLocations = [];
 
   for (const location of locations) {
     if (location.connections.length > 0 && location.travellers > 0) {
@@ -20,12 +20,16 @@ loop(1, () => {
     }
   }
 
-  for(const departingLocation of departingLocations) {
-    const destination = departingLocation.connections[parseInt(rand(departingLocation.connections.length))];
+  for (const departingLocation of departingLocations) {
+    const destination =
+      departingLocation.connections[
+        parseInt(rand(departingLocation.connections.length))
+      ];
     departingLocation.travellers--;
-    destination.travellers++;
+
+    createPlane(departingLocation.pos, destination.pos, 1);
   }
-})
+});
 
 function createLocations() {
   const locationCount = 5;
@@ -51,7 +55,7 @@ function createLocations() {
       },
     ]);
 
-    const travellerText = add([
+    add([
       pos(position.x, position.y - 32),
       origin('center'),
       text('test', {
@@ -60,12 +64,43 @@ function createLocations() {
         color: 'black',
       }),
       color(30, 20, 20),
+      {
+        update() {
+          this.text = location.travellers;
+        },
+      },
     ]);
-
-    travellerText.onUpdate(() => {
-      travellerText.text = location.travellers;
-    });
   }
+}
+
+function createPlane(from, to, passengers = 1) {
+  const plane = add([
+    'plane',
+    pos(from),
+    rect(16, 16),
+    origin('center'),
+    area(),
+    color(100, 20, 20),
+    {
+      update() {
+        this.moveTo(to, 200);
+      },
+      destination: to,
+      passengers,
+    },
+  ]);
+
+  plane.onCollide('location', (location) => {
+    if (
+      location.pos.x === plane.destination.x &&
+      location.pos.y === plane.destination.y
+    ) {
+      location.travellers += plane.passengers;
+      destroy(plane);
+    }
+  });
+
+  return plane;
 }
 
 onMouseDown((pos) => {
