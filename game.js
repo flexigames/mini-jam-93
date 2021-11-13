@@ -8,6 +8,7 @@ let start = null;
 let end = null;
 let money = 100;
 
+const planeCapacity = 5;
 const locationCount = 4;
 const locationColors = [
   { r: 242, g: 123, b: 75 },
@@ -63,9 +64,13 @@ loop(1, () => {
   }
 
   for (const [departingLocation, destination] of flights) {
-    departingLocation.travelers[destination.number]--;
+    const numberOfPassengers = Math.min(
+      departingLocation.travelers[destination.number],
+      5
+    );
+    departingLocation.travelers[destination.number] -= numberOfPassengers;
 
-    createPlane(departingLocation, destination, 1);
+    createPlane(departingLocation, destination, numberOfPassengers);
   }
 });
 
@@ -97,7 +102,7 @@ function createLocations() {
     for (let j = 0; j < locationCount; j++) {
       if (j === i) continue;
 
-      location.travelers[j] = parseInt(rand(2));
+      location.travelers[j] = parseInt(rand(10));
       posY += 32;
       add([
         pos(position.x, posY),
