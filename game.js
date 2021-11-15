@@ -18,10 +18,67 @@ const background = add([
   origin('center'),
 ]);
 
+const connections = add([
+  'connection-display',
+  origin('topright'),
+  pos(width(), 0),
+  rect(300, 300),
+  color(rgb(20, 20, 50)),
+  {
+    connections: [],
+    get() {
+      return this.connections;
+    },
+    createConnection(location1, location2) {
+      this.connections.push(
+        add([
+          'connection',
+          pos(width() - 150, 10 + (this.connections.length + 1) * 30),
+          area(),
+          origin('center'),
+          text(location1.number + '-' + location2.number  + ' x', {
+            size: 24,
+            font: 'sink',
+          }),
+          {
+            location1,
+            location2,
+          },
+        ])
+      );
+    },
+    deleteConnection({ location1, location2 }) {
+      const connectionToDelete = this.connections.find(
+        (connection) =>
+          (connection.location1 === location1 &&
+            connection.location2 === location2) ||
+          (connection.location1 === location2 &&
+            connection.location2 === location1)
+      );
+
+      this.connections = this.connections.filter(
+        (connection) =>
+          !(
+            (connection.location1 === location1 &&
+              connection.location2 === location2) ||
+            (connection.location1 === location2 &&
+              connection.location2 === location1)
+          )
+      );
+
+      destroy(connectionToDelete);
+    },
+  },
+]);
+
+onClick('connection', (connection) => {
+  console.log('connection', connection);
+  connections.deleteConnection(connection);
+});
+
 let start = null;
 let end = null;
 let money = 100;
-let connections = [];
 
 const planeCapacity = 5;
 const locationCount = 4;
@@ -71,7 +128,7 @@ onDraw(() => {
 
   const locations = get('location');
 
-  for (const { location1, location2 } of connections) {
+  for (const { location1, location2 } of connections.get()) {
     drawLine({
       p1: location1.pos,
       p2: location2.pos,
@@ -95,7 +152,7 @@ loop(2, () => {
 
   const flights = [];
 
-  for (const connection of connections) {
+  for (const connection of connections.get()) {
     if (connection.active) continue;
 
     connection.reverse = !connection.reverse;
@@ -214,39 +271,18 @@ onMouseDown((pos) => {
 });
 onMouseMove((pos) => (end = pos));
 onMouseRelease((pos) => {
-  console.log(pos);
   const location = getLocation(pos);
 
   if (location && start?.pos !== location.pos) {
     if (canSpend(10)) {
       spend(10, location.pos);
-      createConnection(start, location);
+      connections.createConnection(start, location);
     }
   }
 
   start = null;
   end = null;
 });
-
-function createConnection(location1, location2) {
-  connections.push({
-    location1,
-    location2,
-  });
-}
-
-function deleteConnection({ location1, location2 }) {
-  console.log('deleting');
-  connections = connections.filter(
-    (connection) =>
-      !(
-        (connection.location1 === location1 &&
-          connection.location2 === location2) ||
-        (connection.location1 === location2 &&
-          connection.location2 === location1)
-      )
-  );
-}
 
 function showMoney(position, amount) {
   const initialY = position.y;
