@@ -140,7 +140,7 @@ function createLocations() {
             const traveler = this.travelers[i];
 
             drawCircle({
-              pos: vec2(this.pos.x, this.pos.y - 64 * (i + 1)),
+              pos: vec2(this.pos.x, this.pos.y - 64 - 32 * (i)),
               radius: 8,
               color: locationColors[traveler.desire === 'vacation' ? 0 : 1],
             });
@@ -149,12 +149,16 @@ function createLocations() {
       },
     ]);
 
-    if (type === 'work') {
-      location.travelers.push({
-        desire: 'vacation',
-      });
+    for(let i = 0; i < parseInt(rand(5)); i++) {
+      createTraveler(location, type === 'vacation' ? 'work' : 'vacation');
     }
   }
+}
+
+function createTraveler(location, desire) {
+  location.travelers.push({
+    desire,
+  });
 }
 
 function createPlane(from, to, passengers, connection) {
