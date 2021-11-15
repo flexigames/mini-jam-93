@@ -3,7 +3,7 @@ import kaboom from 'kaboom';
 kaboom({
   background: [10, 10, 20],
   width: 880,
-  height: 798
+  height: 798,
 });
 
 loadSprite('vacation', 'vacation.png');
@@ -12,7 +12,7 @@ loadSprite('europe', 'europe.png');
 
 const background = add([
   sprite('europe', {
-    height: height()
+    height: height(),
   }),
   pos(width() / 2, height() / 2),
   origin('center'),
@@ -35,29 +35,29 @@ const startingLocations = [
   {
     position: vec2(349, 629),
     type: 'vacation',
-    name: 'italy'
+    name: 'italy',
   },
   {
     position: vec2(211, 536),
     type: 'vacation',
-    name: 'france'
+    name: 'france',
   },
   {
     position: vec2(81, 674),
     type: 'vacation',
-    name: 'spain'
+    name: 'spain',
   },
   {
     position: vec2(313, 477),
     type: 'work',
-    name: 'germany'
+    name: 'germany',
   },
   {
     position: vec2(167, 408),
     type: 'work',
-    name: 'uk'
+    name: 'uk',
   },
-]
+];
 
 onDraw(() => {
   if (start && end) {
@@ -120,8 +120,7 @@ loop(2, () => {
 });
 
 function createLocations() {
-  for (const {position, type, name} of startingLocations) {
-
+  for (const { position, type, name } of startingLocations) {
     const location = add([
       'location',
       pos(position),
@@ -140,7 +139,7 @@ function createLocations() {
             const traveler = this.travelers[i];
 
             drawCircle({
-              pos: vec2(this.pos.x, this.pos.y - 64 - 32 * (i)),
+              pos: vec2(this.pos.x, this.pos.y - 64 - 32 * i),
               radius: 8,
               color: locationColors[traveler.desire === 'vacation' ? 0 : 1],
             });
@@ -149,7 +148,7 @@ function createLocations() {
       },
     ]);
 
-    for(let i = 0; i < parseInt(rand(5)); i++) {
+    for (let i = 0; i < parseInt(rand(5)); i++) {
       createTraveler(location, type === 'vacation' ? 'work' : 'vacation');
     }
   }
@@ -215,13 +214,13 @@ onMouseDown((pos) => {
 });
 onMouseMove((pos) => (end = pos));
 onMouseRelease((pos) => {
-  console.log(pos)
+  console.log(pos);
   const location = getLocation(pos);
 
   if (location && start?.pos !== location.pos) {
     if (canSpend(10)) {
       spend(10, location.pos);
-      connections.push({ location1: start, location2: location });
+      createConnection(start, location);
     }
   }
 
@@ -229,9 +228,28 @@ onMouseRelease((pos) => {
   end = null;
 });
 
+function createConnection(location1, location2) {
+  connections.push({
+    location1,
+    location2,
+  });
+}
+
+function deleteConnection({ location1, location2 }) {
+  console.log('deleting');
+  connections = connections.filter(
+    (connection) =>
+      !(
+        (connection.location1 === location1 &&
+          connection.location2 === location2) ||
+        (connection.location1 === location2 &&
+          connection.location2 === location1)
+      )
+  );
+}
+
 function showMoney(position, amount) {
   const initialY = position.y;
-  console.log('showMoney', amount);
   add([
     pos(position),
     text((amount < 0 ? '-' : '') + '$' + Math.abs(amount), {
