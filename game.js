@@ -1,8 +1,22 @@
-import kaboom from "kaboom";
+import kaboom from 'kaboom';
 
 kaboom({
   background: [10, 10, 20],
+  width: 880,
+  height: 798
 });
+
+loadSprite('vacation', 'vacation.png');
+loadSprite('work', 'work.png');
+loadSprite('europe', 'europe.png');
+
+const background = add([
+  sprite('europe', {
+    height: height()
+  }),
+  pos(width() / 2, height() / 2),
+  origin('center'),
+]);
 
 let start = null;
 let end = null;
@@ -17,6 +31,33 @@ const locationColors = [
   { r: 255, g: 237, b: 90 },
   { r: 0, g: 140, b: 204 },
 ];
+const startingLocations = [
+  {
+    position: vec2(349, 629),
+    type: 'vacation',
+    name: 'italy'
+  },
+  {
+    position: vec2(211, 536),
+    type: 'vacation',
+    name: 'france'
+  },
+  {
+    position: vec2(81, 674),
+    type: 'vacation',
+    name: 'spain'
+  },
+  {
+    position: vec2(313, 477),
+    type: 'work',
+    name: 'germany'
+  },
+  {
+    position: vec2(167, 408),
+    type: 'work',
+    name: 'uk'
+  },
+]
 
 onDraw(() => {
   if (start && end) {
@@ -28,7 +69,7 @@ onDraw(() => {
     });
   }
 
-  const locations = get("location");
+  const locations = get('location');
 
   for (const { location1, location2 } of connections) {
     drawLine({
@@ -40,9 +81,9 @@ onDraw(() => {
   }
 
   drawText({
-    text: "$" + money,
+    text: '$' + money,
     size: 24,
-    font: "sink",
+    font: 'sink',
     color: rgb(255, 255, 255),
   });
 });
@@ -50,7 +91,7 @@ onDraw(() => {
 createLocations();
 
 loop(2, () => {
-  const locations = get("location");
+  const locations = get('location');
 
   const flights = [];
 
@@ -79,26 +120,19 @@ loop(2, () => {
 });
 
 function createLocations() {
-  for (let i = 0; i < locationCount; i++) {
-    const position = new vec2(
-      rand(width() - 200) + 100,
-      rand(height() - 200) + 100
-    );
-
-    const type = Math.random() > 0.5 ? "vacation" : "work";
+  for (const {position, type, name} of startingLocations) {
 
     const location = add([
-      "location",
+      'location',
       pos(position),
-      text(type === "vacation" ? "🏝" : "👨‍💻", {
-        size: 24,
-        font: "sink",
+      sprite(type, {
+        width: 64,
+        height: 64,
       }),
-      origin("center"),
+      origin('center'),
       area(),
-      color(locationColors[type === "vacation" ? 0 : 1]),
       {
-        number: i,
+        number: name,
         travelers: [],
         type,
         draw() {
@@ -106,18 +140,18 @@ function createLocations() {
             const traveler = this.travelers[i];
 
             drawCircle({
-              pos: vec2(this.pos.x, this.pos.y + 32 * (i + 1)),
+              pos: vec2(this.pos.x, this.pos.y - 64 * (i + 1)),
               radius: 8,
-              color: locationColors[traveler.desire === "vacation" ? 0 : 1],
+              color: locationColors[traveler.desire === 'vacation' ? 0 : 1],
             });
           }
         },
       },
     ]);
 
-    if (type === "work") {
+    if (type === 'work') {
       location.travelers.push({
-        desire: "vacation",
+        desire: 'vacation',
       });
     }
   }
@@ -131,13 +165,13 @@ function createPlane(from, to, passengers, connection) {
   spend(10, from.pos);
 
   const plane = add([
-    "plane",
+    'plane',
     pos(from.pos),
-    origin("center"),
+    origin('center'),
     area(),
     text(passengers.length, {
       size: 24,
-      font: "sink",
+      font: 'sink',
     }),
     color(locationColors[to.number]),
     {
@@ -150,14 +184,14 @@ function createPlane(from, to, passengers, connection) {
     },
   ]);
 
-  plane.onCollide("location", (location) => {
+  plane.onCollide('location', (location) => {
     if (
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
     ) {
       location.travelers.push(...plane.passengers);
       for (const traveler of plane.passengers) {
-        traveler.desire = to.type === "vacation" ? "work" : "vacation";
+        traveler.desire = to.type === 'vacation' ? 'work' : 'vacation';
       }
       plane.connection.active = false;
       earn(plane.passengers.length * 5, plane.pos);
@@ -177,6 +211,7 @@ onMouseDown((pos) => {
 });
 onMouseMove((pos) => (end = pos));
 onMouseRelease((pos) => {
+  console.log(pos)
   const location = getLocation(pos);
 
   if (location && start?.pos !== location.pos) {
@@ -192,12 +227,12 @@ onMouseRelease((pos) => {
 
 function showMoney(position, amount) {
   const initialY = position.y;
-  console.log("showMoney", amount);
+  console.log('showMoney', amount);
   add([
     pos(position),
-    text((amount < 0 ? "-" : "") + "$" + Math.abs(amount), {
+    text((amount < 0 ? '-' : '') + '$' + Math.abs(amount), {
       size: 24,
-      font: "sink",
+      font: 'sink',
     }),
     opacity(),
     color(amount < 0 ? rgb(220, 50, 20) : rgb(20, 220, 50)),
@@ -215,7 +250,7 @@ function showMoney(position, amount) {
 }
 
 function getLocation(pos) {
-  const locations = get("location");
+  const locations = get('location');
   for (const location of locations) {
     if (location.hasPoint(pos)) {
       return location;
