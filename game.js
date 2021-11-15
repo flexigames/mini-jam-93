@@ -90,17 +90,16 @@ function createLocations() {
     const location = add([
       "location",
       pos(position),
-      rect(32, 32),
+      text(type === "vacation" ? "🏝" : "👨‍💻", {
+        size: 24,
+        font: "sink",
+      }),
       origin("center"),
       area(),
       color(locationColors[type === "vacation" ? 0 : 1]),
       {
         number: i,
-        travelers: [
-          {
-            desire: "vacation",
-          },
-        ],
+        travelers: [],
         type,
         draw() {
           for (let i = 0; i < this.travelers.length; i++) {
@@ -115,6 +114,12 @@ function createLocations() {
         },
       },
     ]);
+
+    if (type === "work") {
+      location.travelers.push({
+        desire: "vacation",
+      });
+    }
   }
 }
 
@@ -151,6 +156,9 @@ function createPlane(from, to, passengers, connection) {
       location.pos.y === plane.destination.y
     ) {
       location.travelers.push(...plane.passengers);
+      for (const traveler of plane.passengers) {
+        traveler.desire = to.type === "vacation" ? "work" : "vacation";
+      }
       plane.connection.active = false;
       earn(plane.passengers.length * 5, plane.pos);
       plane.travelers = [];
