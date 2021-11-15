@@ -1,4 +1,4 @@
-import kaboom from 'kaboom';
+import kaboom from "kaboom";
 
 kaboom({
   background: [10, 10, 20],
@@ -7,6 +7,7 @@ kaboom({
 let start = null;
 let end = null;
 let money = 100;
+let connections = [];
 
 const planeCapacity = 5;
 const locationCount = 4;
@@ -27,23 +28,21 @@ onDraw(() => {
     });
   }
 
-  const locations = get('location');
+  const locations = get("location");
 
-  for (const location of locations) {
-    for (const connection of location.connections) {
-      drawLine({
-        p1: location.pos,
-        p2: connection.pos,
-        width: 8,
-        color: rgb(40, 38, 78),
-      });
-    }
+  for (const { location1, location2 } of connections) {
+    drawLine({
+      p1: location1.pos,
+      p2: location2.pos,
+      width: 8,
+      color: rgb(40, 38, 78),
+    });
   }
 
   drawText({
-    text: '$' + money,
+    text: "$" + money,
     size: 24,
-    font: 'sink',
+    font: "sink",
     color: rgb(255, 255, 255),
   });
 });
@@ -51,14 +50,17 @@ onDraw(() => {
 createLocations();
 
 loop(3, () => {
-  const locations = get('location');
+  const locations = get("location");
 
   const flights = [];
 
-  for (const departingLocation of locations) {
-    for (const destination of departingLocation.connections) {
-      flights.push([departingLocation, destination]);
-    }
+  for (const connection of connections) {
+    connection.reverse = !connection.reverse;
+    flights.push(
+      connection.reverse
+        ? [connection.location2, connection.location1]
+        : [connection.location1, connection.location2]
+    );
   }
 
   for (const [departingLocation, destination] of flights) {
@@ -80,19 +82,15 @@ function createLocations() {
     );
 
     const location = add([
-      'location',
+      "location",
       pos(position),
       rect(32, 32),
-      origin('center'),
+      origin("center"),
       area(),
       color(locationColors[i]),
       {
         number: i,
         travelers: {},
-        connections: [],
-        addConnection(location) {
-          this.connections = [...this.connections, location];
-        },
       },
     ]);
 
@@ -104,11 +102,11 @@ function createLocations() {
       posY += 32;
       add([
         pos(position.x, posY),
-        origin('center'),
-        text('0', {
+        origin("center"),
+        text("0", {
           size: 24,
-          font: 'sink',
-          color: 'black',
+          font: "sink",
+          color: "black",
         }),
         color(locationColors[j % locationColors.length]),
         {
@@ -127,13 +125,13 @@ function createPlane(from, to, passengers = 1) {
   spend(10, from.pos);
 
   const plane = add([
-    'plane',
+    "plane",
     pos(from.pos),
-    origin('center'),
+    origin("center"),
     area(),
     text(passengers, {
       size: 24,
-      font: 'sink',
+      font: "sink",
     }),
     color(locationColors[to.number]),
     {
@@ -145,7 +143,7 @@ function createPlane(from, to, passengers = 1) {
     },
   ]);
 
-  plane.onCollide('location', (location) => {
+  plane.onCollide("location", (location) => {
     if (
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
@@ -175,7 +173,7 @@ onMouseRelease((pos) => {
   if (location && start?.pos !== location.pos) {
     if (canSpend(10)) {
       spend(10, location.pos);
-      start.addConnection(location);
+      connections.push({ location1: start, location2: location });
     }
   }
 
@@ -185,12 +183,12 @@ onMouseRelease((pos) => {
 
 function showMoney(position, amount) {
   const initialY = position.y;
-  console.log('showMoney', amount);
+  console.log("showMoney", amount);
   add([
     pos(position),
-    text((amount < 0 ? '-' : '') + '$' + Math.abs(amount), {
+    text((amount < 0 ? "-" : "") + "$" + Math.abs(amount), {
       size: 24,
-      font: 'sink',
+      font: "sink",
     }),
     opacity(),
     color(amount < 0 ? rgb(220, 50, 20) : rgb(20, 220, 50)),
@@ -208,7 +206,7 @@ function showMoney(position, amount) {
 }
 
 function getLocation(pos) {
-  const locations = get('location');
+  const locations = get("location");
   for (const location of locations) {
     if (location.hasPoint(pos)) {
       return location;
