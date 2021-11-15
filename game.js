@@ -49,7 +49,7 @@ onDraw(() => {
 
 createLocations();
 
-loop(1, () => {
+loop(2, () => {
   const locations = get("location");
 
   const flights = [];
@@ -58,21 +58,23 @@ loop(1, () => {
     if (connection.active) continue;
 
     connection.reverse = !connection.reverse;
-    flights.push(
-      connection.reverse
-        ? [connection.location2, connection.location1, connection]
-        : [connection.location1, connection.location2, connection]
-    );
-  }
 
-  for (const [departingLocation, destination, connection] of flights) {
-    const numberOfPassengers = Math.min(
-      departingLocation.travelers[destination.number],
-      5
-    );
-    departingLocation.travelers[destination.number] -= numberOfPassengers;
+    const from = connection.reverse
+      ? connection.location2
+      : connection.location1;
+    const to = connection.reverse ? connection.location1 : connection.location2;
 
-    createPlane(departingLocation, destination, numberOfPassengers, connection);
+    const travelers = from.travelers.filter(
+      (traveler) => traveler.desire === to.type
+    );
+
+    from.travelers = from.travelers.filter(
+      (traveler) => traveler.desire !== to.type
+    );
+
+    if (travelers.length > 0) {
+      createPlane(from, to, travelers, connection);
+    }
   }
 });
 
@@ -83,41 +85,36 @@ function createLocations() {
       rand(height() - 200) + 100
     );
 
+    const type = Math.random() > 0.5 ? "vacation" : "work";
+
     const location = add([
       "location",
       pos(position),
       rect(32, 32),
       origin("center"),
       area(),
-      color(locationColors[i]),
+      color(locationColors[type === "vacation" ? 0 : 1]),
       {
         number: i,
-        travelers: {},
+        travelers: [
+          {
+            desire: "vacation",
+          },
+        ],
+        type,
+        draw() {
+          for (let i = 0; i < this.travelers.length; i++) {
+            const traveler = this.travelers[i];
+
+            drawCircle({
+              pos: vec2(this.pos.x, this.pos.y + 32 * (i + 1)),
+              radius: 8,
+              color: locationColors[traveler.desire === "vacation" ? 0 : 1],
+            });
+          }
+        },
       },
     ]);
-
-    let posY = position.y;
-    for (let j = 0; j < locationCount; j++) {
-      if (j === i) continue;
-
-      location.travelers[j] = parseInt(rand(20));
-      posY += 32;
-      add([
-        pos(position.x, posY),
-        origin("center"),
-        text("0", {
-          size: 24,
-          font: "sink",
-          color: "black",
-        }),
-        color(locationColors[j % locationColors.length]),
-        {
-          update() {
-            this.text = location.travelers[j];
-          },
-        },
-      ]);
-    }
   }
 }
 
@@ -133,7 +130,7 @@ function createPlane(from, to, passengers, connection) {
     pos(from.pos),
     origin("center"),
     area(),
-    text(passengers, {
+    text(passengers.length, {
       size: 24,
       font: "sink",
     }),
@@ -153,12 +150,10 @@ function createPlane(from, to, passengers, connection) {
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
     ) {
-      const possibleDestinations = Object.keys(location.travelers);
-      const randomDestination =
-        possibleDestinations[parseInt(rand(possibleDestinations.length))];
-      location.travelers[randomDestination] += plane.passengers;
+      location.travelers.push(...plane.passengers);
       plane.connection.active = false;
-      earn(plane.passengers * 5, plane.pos);
+      earn(plane.passengers.length * 5, plane.pos);
+      plane.travelers = [];
       destroy(plane);
     }
   });
