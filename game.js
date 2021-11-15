@@ -49,28 +49,31 @@ onDraw(() => {
 
 createLocations();
 
-loop(3, () => {
+loop(1, () => {
   const locations = get("location");
 
   const flights = [];
 
   for (const connection of connections) {
+    if (connection.active) continue;
+
     connection.reverse = !connection.reverse;
+    connection.active = true;
     flights.push(
       connection.reverse
-        ? [connection.location2, connection.location1]
-        : [connection.location1, connection.location2]
+        ? [connection.location2, connection.location1, connection]
+        : [connection.location1, connection.location2, connection]
     );
   }
 
-  for (const [departingLocation, destination] of flights) {
+  for (const [departingLocation, destination, connection] of flights) {
     const numberOfPassengers = Math.min(
       departingLocation.travelers[destination.number],
       5
     );
     departingLocation.travelers[destination.number] -= numberOfPassengers;
 
-    createPlane(departingLocation, destination, numberOfPassengers);
+    createPlane(departingLocation, destination, numberOfPassengers, connection);
   }
 });
 
@@ -98,7 +101,7 @@ function createLocations() {
     for (let j = 0; j < locationCount; j++) {
       if (j === i) continue;
 
-      location.travelers[j] = parseInt(rand(10));
+      location.travelers[j] = parseInt(rand(20));
       posY += 32;
       add([
         pos(position.x, posY),
@@ -119,7 +122,7 @@ function createLocations() {
   }
 }
 
-function createPlane(from, to, passengers = 1) {
+function createPlane(from, to, passengers, connection) {
   if (!canSpend(10)) return;
 
   spend(10, from.pos);
@@ -140,6 +143,7 @@ function createPlane(from, to, passengers = 1) {
       },
       destination: to.pos,
       passengers,
+      connection,
     },
   ]);
 
@@ -152,6 +156,7 @@ function createPlane(from, to, passengers = 1) {
       const randomDestination =
         possibleDestinations[parseInt(rand(possibleDestinations.length))];
       location.travelers[randomDestination] += plane.passengers;
+      plane.connection.active = false;
       earn(plane.passengers * 5, plane.pos);
       destroy(plane);
     }
