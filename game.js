@@ -58,7 +58,6 @@ loop(1, () => {
     if (connection.active) continue;
 
     connection.reverse = !connection.reverse;
-    connection.active = true;
     flights.push(
       connection.reverse
         ? [connection.location2, connection.location1, connection]
@@ -124,6 +123,8 @@ function createLocations() {
 
 function createPlane(from, to, passengers, connection) {
   if (!canSpend(10)) return;
+
+  connection.active = true;
 
   spend(10, from.pos);
 
