@@ -1,4 +1,4 @@
-import kaboom from 'kaboom';
+import kaboom from "kaboom";
 
 kaboom({
   background: [10, 10, 20],
@@ -6,21 +6,23 @@ kaboom({
   height: 798,
 });
 
-loadSprite('vacation', 'vacation.png');
-loadSprite('work', 'work.png');
-loadSprite('europe', 'europe.png');
+loadSprite("vacation", "vacation.png");
+loadSprite("work", "officebuilding.png");
+loadSprite("europe", "europe.png");
+loadSprite("officeworker", "work.png");
+loadSprite("surfing", "surfing.png");
 
 const background = add([
-  sprite('europe', {
+  sprite("europe", {
     height: height(),
   }),
   pos(width() / 2, height() / 2),
-  origin('center'),
+  origin("center"),
 ]);
 
 const connections = add([
-  'connection-display',
-  origin('topright'),
+  "connection-display",
+  origin("topright"),
   pos(width(), 0),
   rect(300, 300),
   color(rgb(20, 20, 50)),
@@ -32,13 +34,13 @@ const connections = add([
     createConnection(location1, location2) {
       this.connections.push(
         add([
-          'connection',
+          "connection",
           pos(width() - 150, 10 + (this.connections.length + 1) * 30),
           area(),
-          origin('center'),
-          text(location1.number + '-' + location2.number  + ' x', {
+          origin("center"),
+          text(location1.number + "-" + location2.number + " x", {
             size: 24,
-            font: 'sink',
+            font: "sink",
           }),
           {
             location1,
@@ -71,8 +73,8 @@ const connections = add([
   },
 ]);
 
-onClick('connection', (connection) => {
-  console.log('connection', connection);
+onClick("connection", (connection) => {
+  console.log("connection", connection);
   connections.deleteConnection(connection);
 });
 
@@ -91,28 +93,28 @@ const locationColors = [
 const startingLocations = [
   {
     position: vec2(349, 629),
-    type: 'vacation',
-    name: 'italy',
+    type: "vacation",
+    name: "italy",
   },
   {
     position: vec2(211, 536),
-    type: 'vacation',
-    name: 'france',
+    type: "vacation",
+    name: "france",
   },
   {
     position: vec2(81, 674),
-    type: 'vacation',
-    name: 'spain',
+    type: "vacation",
+    name: "spain",
   },
   {
     position: vec2(313, 477),
-    type: 'work',
-    name: 'germany',
+    type: "work",
+    name: "germany",
   },
   {
     position: vec2(167, 408),
-    type: 'work',
-    name: 'uk',
+    type: "work",
+    name: "uk",
   },
 ];
 
@@ -126,7 +128,7 @@ onDraw(() => {
     });
   }
 
-  const locations = get('location');
+  const locations = get("location");
 
   for (const { location1, location2 } of connections.get()) {
     drawLine({
@@ -138,9 +140,9 @@ onDraw(() => {
   }
 
   drawText({
-    text: '$' + money,
+    text: "$" + money,
     size: 24,
-    font: 'sink',
+    font: "sink",
     color: rgb(255, 255, 255),
   });
 });
@@ -148,7 +150,7 @@ onDraw(() => {
 createLocations();
 
 loop(2, () => {
-  const locations = get('location');
+  const locations = get("location");
 
   const flights = [];
 
@@ -179,13 +181,13 @@ loop(2, () => {
 function createLocations() {
   for (const { position, type, name } of startingLocations) {
     const location = add([
-      'location',
+      "location",
       pos(position),
       sprite(type, {
         width: 64,
         height: 64,
       }),
-      origin('center'),
+      origin("center"),
       area(),
       {
         number: name,
@@ -195,10 +197,11 @@ function createLocations() {
           for (let i = 0; i < this.travelers.length; i++) {
             const traveler = this.travelers[i];
 
-            drawCircle({
+            drawSprite({
+              sprite:
+                traveler.desire === "vacation" ? "officeworker" : "surfing",
               pos: vec2(this.pos.x, this.pos.y - 64 - 32 * i),
-              radius: 8,
-              color: locationColors[traveler.desire === 'vacation' ? 0 : 1],
+              width: 32,
             });
           }
         },
@@ -206,7 +209,7 @@ function createLocations() {
     ]);
 
     for (let i = 0; i < parseInt(rand(5)); i++) {
-      createTraveler(location, type === 'vacation' ? 'work' : 'vacation');
+      createTraveler(location, type === "vacation" ? "work" : "vacation");
     }
   }
 }
@@ -225,13 +228,13 @@ function createPlane(from, to, passengers, connection) {
   spend(10, from.pos);
 
   const plane = add([
-    'plane',
+    "plane",
     pos(from.pos),
-    origin('center'),
+    origin("center"),
     area(),
     text(passengers.length, {
       size: 24,
-      font: 'sink',
+      font: "sink",
     }),
     color(locationColors[to.number]),
     {
@@ -244,14 +247,14 @@ function createPlane(from, to, passengers, connection) {
     },
   ]);
 
-  plane.onCollide('location', (location) => {
+  plane.onCollide("location", (location) => {
     if (
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
     ) {
       location.travelers.push(...plane.passengers);
       for (const traveler of plane.passengers) {
-        traveler.desire = to.type === 'vacation' ? 'work' : 'vacation';
+        traveler.desire = to.type === "vacation" ? "work" : "vacation";
       }
       plane.connection.active = false;
       earn(plane.passengers.length * 5, plane.pos);
@@ -288,9 +291,9 @@ function showMoney(position, amount) {
   const initialY = position.y;
   add([
     pos(position),
-    text((amount < 0 ? '-' : '') + '$' + Math.abs(amount), {
+    text((amount < 0 ? "-" : "") + "$" + Math.abs(amount), {
       size: 24,
-      font: 'sink',
+      font: "sink",
     }),
     opacity(),
     color(amount < 0 ? rgb(220, 50, 20) : rgb(20, 220, 50)),
@@ -308,7 +311,7 @@ function showMoney(position, amount) {
 }
 
 function getLocation(pos) {
-  const locations = get('location');
+  const locations = get("location");
   for (const location of locations) {
     if (location.hasPoint(pos)) {
       return location;
