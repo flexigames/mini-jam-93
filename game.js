@@ -252,13 +252,16 @@ function createPlane(from, to, passengers, connection) {
       location.pos.x === plane.destination.x &&
       location.pos.y === plane.destination.y
     ) {
-      location.travelers.push(...plane.passengers);
+      let i = 1;
       for (const traveler of plane.passengers) {
+        setTimeout(() => {
+          location.travelers.push(traveler);
+        }, i * 1000);
         traveler.desire = to.type === "vacation" ? "work" : "vacation";
+        i++;
       }
       plane.connection.active = false;
       earn(plane.passengers.length * 5, plane.pos);
-      plane.travelers = [];
       destroy(plane);
     }
   });
